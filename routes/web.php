@@ -1,6 +1,10 @@
 <?php
 
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PaystackController;
 use Illuminate\Support\Facades\Route;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -15,10 +19,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
-require __DIR__.'/auth.php';
+Route::get('/pay', [PaymentController::class, 'index'])->name('payment');
+Route::get('/success/{ref?}', [PaymentController::class, 'success'])->defaults('ref', null)->name('success');
+Route::get('/cancel/{ref?}', [PaymentController::class, 'cancel'])->defaults('ref', null)->name('cancel');
+
+Route::post('/pay', [PaymentController::class, 'redirectToGateway'])->name('pay');
+
+Route::get('/redirect', [PaystackController::class, 'redirect'])->name('paystack.redirect');
+Route::get('/payment/callback', [PaystackController::class, 'verify'])->name('paystack.verify');
+
+require __DIR__ . '/auth.php';
