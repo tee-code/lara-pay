@@ -4,7 +4,7 @@
         <h1 class="text-3xl font-bold">LaraPay</h1>
         <h2 class="text-2xl">Reference ID: {{ $ref}}</h2>
         <h2 class="text-2xl">
-            @if(isset(session('msg')))
+            @if(session('msg'))
                 {{ session('msg') }}
             @else
                 Payment Not Successful. Try again!

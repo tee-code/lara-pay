@@ -1,24 +1,27 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Repositories;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use App\Interfaces\PaymentInterface;
 
 
-class PaystackController extends Controller
+class PaystackRepository implements PaymentInterface
 {
+
+    protected $key = "paystack-basic";
 
     public function redirect($fields)
     {
 
-        $url = $this->getPaystackUrl();
+        $url = $this->getRedirectUrl();
 
         $fields['currency'] = 'NGN';
         $fields['amount'] *= 100;
         $fields['key'] = env('PAYSTACK_PUBLIC_KEY');
-        $fields['callback_url'] = route('paystack.verify');
+        $fields['callback_url'] = route('verify', $this->key);
 
         $fields_string = http_build_query($fields);
         //open connection
@@ -51,12 +54,12 @@ class PaystackController extends Controller
 
     }
 
-    public function getPaystackUrl()
+    public function getRedirectUrl()
     {
         return Config::get('paymentgateways.paystack-basic.redirect_url');
     }
 
-    public function getPaystackVerifyUrl()
+    public function getVerifyUrl()
     {
         return Config::get('paymentgateways.paystack-basic.verify_url');
     }
@@ -70,7 +73,7 @@ class PaystackController extends Controller
         }
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => $this->getPaystackVerifyUrl() . rawurlencode($reference),
+        CURLOPT_URL => $this->getVerifyUrl() . rawurlencode($reference),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_HTTPHEADER => [
@@ -101,9 +104,18 @@ class PaystackController extends Controller
             // please check other things like whether you already gave value for this ref
             // if the email matches the customer who owns the product etc
             // Give value
-            return redirect()->route('success', $reference);
+            return [
+                "status" => $tranx->data->status,
+                "message" => $tranx->message,
+                "data" => $tranx->data,
+                "ref" => $reference
+            ];
         }else{
-            return redirect()->route('cancel', $reference);
+            return [
+                "status" => false,
+                "message" => $tranx->message,
+                "ref" => $reference
+            ];
         }
     }
 }

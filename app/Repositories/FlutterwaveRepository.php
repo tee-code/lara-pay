@@ -1,23 +1,25 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Repositories;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
+use App\Interfaces\PaymentInterface;
 
-
-class FlutterwaveController extends Controller
+class FlutterwaveRepository implements PaymentInterface
 {
+
+    protected $key = "flutterwave-basic";
 
     public function redirect($fields)
     {
 
-        $url = $this->getFlutterwaveUrl();
+        $url = $this->getRedirectUrl();
 
         $fields['currency'] = 'NGN';
         $fields['tx_ref'] = time();
-        $fields['redirect_url'] = route('flutterwave.verify');
+        $fields['redirect_url'] = route('verify', $this->key);
         $fields['customer'] = array(
             "name" => Auth::user()->name,
             "phone_number" => $fields['phone'],
@@ -35,7 +37,7 @@ class FlutterwaveController extends Controller
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => $this->getFlutterwaveUrl(),
+        CURLOPT_URL => $this->getRedirectUrl(),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => 0,
         CURLOPT_ENCODING => '',
@@ -70,12 +72,12 @@ class FlutterwaveController extends Controller
 
     }
 
-    public function getFlutterwaveUrl()
+    public function getRedirectUrl()
     {
         return Config::get('paymentgateways.flutterwave-basic.redirect_url');
     }
 
-    public function getFlutterwaveVerifyUrl()
+    public function getVerifyUrl()
     {
         return Config::get('paymentgateways.flutterwave-basic.verify_url');
     }
@@ -88,7 +90,7 @@ class FlutterwaveController extends Controller
             if($_GET['status'] == 'cancelled')
             {
                 // echo 'YOu cancel the payment';
-                header('Location: ' . route('cancel'));
+                header('Location: ' . route('cancel')->with('msg', "Transaction Cancelled"));
             }
             elseif($_GET['status'] == 'successful')
             {
@@ -96,7 +98,7 @@ class FlutterwaveController extends Controller
 
                 $curl = curl_init();
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => "{$this->getFlutterwaveVerifyUrl()}/{$id}/verify",
+                    CURLOPT_URL => "{$this->getVerifyUrl()}/{$id}/verify",
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => "",
                     CURLOPT_MAXREDIRS => 10,
@@ -122,16 +124,32 @@ class FlutterwaveController extends Controller
                     $amountToPay = $res->data->meta->price;
                     if($amountPaid >= $amountToPay)
                     {
-                        return redirect()->route('success', $id);
+                        return [
+                            "status" => $res->status,
+                            "data" => $res->data,
+                            "ref" => $id,
+                            "message" => $res->message
+                        ];
+
                     }
                     else
                     {
-                        return redirect()->route('cancel', $id)->with('msg', 'Fraud detected.');
+                        return [
+                            "status" => false,
+                            "message" => "Fraud detected",
+                            "ref" => $id
+                        ];
+                        
                     }
                 }
                 else
                 {
-                    return redirect()->route('cancel', $id)->with('msg', 'Can not process your payment.');
+                    return [
+                        "status" => false,
+                        "message" => "Can not process your payment.",
+                        "ref" > $id
+                    ];
+
                 }
             }
         }
