@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PaystackController;
+use App\Http\Controllers\FlutterwaveController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -31,7 +32,9 @@ Route::get('/cancel/{ref?}', [PaymentController::class, 'cancel'])->defaults('re
 
 Route::post('/pay', [PaymentController::class, 'redirectToGateway'])->name('pay');
 
-Route::get('/redirect', [PaystackController::class, 'redirect'])->name('paystack.redirect');
+Route::get('/paystack/redirect', [PaystackController::class, 'redirect'])->name('paystack.redirect');
+Route::get('/flutterwave/redirect', [FlutterwaveController::class, 'redirect'])->name('flutterwave.redirect');
 Route::get('/payment/callback', [PaystackController::class, 'verify'])->name('paystack.verify');
+Route::get('/flutterwave/callback', [FlutterwaveController::class, 'verify'])->name('flutterwave.verify');
 
 require __DIR__ . '/auth.php';

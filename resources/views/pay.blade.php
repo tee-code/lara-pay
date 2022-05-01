@@ -4,6 +4,7 @@
         <form action="{{ route('pay') }}" method="POST" class="flex flex-col w-100 space-y-3 text-black"> 
             @csrf
             <input type="number" min="100" name="amount" value="" placeholder="Amount:" required> 
+            <input type="tel" name="phone" value="" placeholder="Phone Number:" required> 
             <input type="text" name="reason" value="" placeholder="Reason:" required> 
             <select name="gateway" id="option" required>
                 <option value="0">Select Payment Gateway</option>

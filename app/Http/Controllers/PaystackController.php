@@ -56,6 +56,11 @@ class PaystackController extends Controller
         return Config::get('paymentgateways.paystack-basic.redirect_url');
     }
 
+    public function getPaystackVerifyUrl()
+    {
+        return Config::get('paymentgateways.paystack-basic.verify_url');
+    }
+
     public function verify()
     {
         $curl = curl_init();
@@ -65,7 +70,7 @@ class PaystackController extends Controller
         }
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => "https://api.paystack.co/transaction/verify/" . rawurlencode($reference),
+        CURLOPT_URL => $this->getPaystackVerifyUrl() . rawurlencode($reference),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_HTTPHEADER => [

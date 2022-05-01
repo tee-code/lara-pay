@@ -37,10 +37,6 @@ class PaymentController extends Controller
 
     }
 
-    public function verify()
-    {
-    }
-
     public function success($ref = null)
     {
     

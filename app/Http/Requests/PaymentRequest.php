@@ -24,6 +24,7 @@ class PaymentRequest extends FormRequest
     public function rules()
     {
         return [
+            "phone" => "required|regex:/^([0-9\s\-\+\(\)]*)$/|min:10",
             "amount" => "required|numeric",
             "reason" => "required|max:255",
             "gateway" => "required|max:255"
