@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\TransactionController;
 
 use Illuminate\Support\Facades\Route;
 
@@ -21,9 +22,8 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+
+Route::get('/dashboard', [TransactionController::class, 'index'])->middleware(['auth'])->name('dashboard');
 
 Route::get('/pay', [PaymentController::class, 'index'])->name('payment');
 Route::get('/success/{ref?}', [PaymentController::class, 'success'])->defaults('ref', null)->name('success');

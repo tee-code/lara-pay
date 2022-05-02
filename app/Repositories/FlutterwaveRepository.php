@@ -2,24 +2,21 @@
 
 namespace App\Repositories;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use App\Interfaces\PaymentInterface;
+use App\Http\Traits\PaymentTrait;
 
 class FlutterwaveRepository implements PaymentInterface
 {
-
-    protected $key = "flutterwave-basic";
+    use PaymentTrait;
 
     public function redirect($fields)
     {
-
-        $url = $this->getRedirectUrl();
-
+        $gateway = $fields['gateway'];
         $fields['currency'] = 'NGN';
         $fields['tx_ref'] = time();
-        $fields['redirect_url'] = route('verify', $this->key);
+        $fields['redirect_url'] = route('verify', $gateway);
         $fields['customer'] = array(
             "name" => Auth::user()->name,
             "phone_number" => $fields['phone'],
@@ -37,7 +34,7 @@ class FlutterwaveRepository implements PaymentInterface
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => $this->getRedirectUrl(),
+        CURLOPT_URL => $this->getRedirectUrl($gateway),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => 0,
         CURLOPT_ENCODING => '',
@@ -48,7 +45,7 @@ class FlutterwaveRepository implements PaymentInterface
         CURLOPT_CUSTOMREQUEST => 'POST',
         CURLOPT_POSTFIELDS => $fields_string,
         CURLOPT_HTTPHEADER => array(
-            'Authorization: Bearer ' . env('FLUTTERWAVE_SECRET_KEY'),
+            'Authorization: Bearer ' . $this->getSecretKey($gateway),
             'Content-Type: application/json'
         ),
         ));
@@ -72,17 +69,7 @@ class FlutterwaveRepository implements PaymentInterface
 
     }
 
-    public function getRedirectUrl()
-    {
-        return Config::get('paymentgateways.flutterwave-basic.redirect_url');
-    }
-
-    public function getVerifyUrl()
-    {
-        return Config::get('paymentgateways.flutterwave-basic.verify_url');
-    }
-
-    public function verify()
+    public function verify($gateway)
     {
         if(isset($_GET['status']))
         {
@@ -90,7 +77,11 @@ class FlutterwaveRepository implements PaymentInterface
             if($_GET['status'] == 'cancelled')
             {
                 // echo 'YOu cancel the payment';
-                header('Location: ' . route('cancel')->with('msg', "Transaction Cancelled"));
+                return [
+                    "status" => false,
+                    "message" => "Transaction Cancelled",
+                
+                ];
             }
             elseif($_GET['status'] == 'successful')
             {
@@ -98,7 +89,7 @@ class FlutterwaveRepository implements PaymentInterface
 
                 $curl = curl_init();
                 curl_setopt_array($curl, array(
-                    CURLOPT_URL => "{$this->getVerifyUrl()}/{$id}/verify",
+                    CURLOPT_URL => "{$this->getVerifyUrl("flutterwave-basic")}/{$id}/verify",
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => "",
                     CURLOPT_MAXREDIRS => 10,
@@ -108,7 +99,7 @@ class FlutterwaveRepository implements PaymentInterface
                     CURLOPT_CUSTOMREQUEST => "GET",
                     CURLOPT_HTTPHEADER => array(
                     "Content-Type: application/json",
-                    "Authorization: Bearer " . env('FLUTTERWAVE_SECRET_KEY')
+                    "Authorization: Bearer " . $this->getSecretKey($gateway)
                     ),
                 ));
                 

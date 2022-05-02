@@ -2,26 +2,26 @@
 
 namespace App\Repositories;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use App\Interfaces\PaymentInterface;
+use App\Http\Traits\PaymentTrait;
 
 
 class PaystackRepository implements PaymentInterface
 {
 
-    protected $key = "paystack-basic";
+    use PaymentTrait;
 
     public function redirect($fields)
     {
+        $gateway = $fields['gateway'];
 
-        $url = $this->getRedirectUrl();
+        $url = $this->getRedirectUrl($gateway);
 
         $fields['currency'] = 'NGN';
         $fields['amount'] *= 100;
         $fields['key'] = env('PAYSTACK_PUBLIC_KEY');
-        $fields['callback_url'] = route('verify', $this->key);
+        $fields['callback_url'] = route('verify', $gateway);
 
         $fields_string = http_build_query($fields);
         //open connection
@@ -32,7 +32,7 @@ class PaystackRepository implements PaymentInterface
         curl_setopt($ch,CURLOPT_POST, true);
         curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        "Authorization: Bearer " . env('PAYSTACK_SECRET_KEY'),
+        "Authorization: Bearer " . $this->getSecetKey($gateway),
         "Cache-Control: no-cache",
         ));
         
@@ -54,17 +54,8 @@ class PaystackRepository implements PaymentInterface
 
     }
 
-    public function getRedirectUrl()
-    {
-        return Config::get('paymentgateways.paystack-basic.redirect_url');
-    }
 
-    public function getVerifyUrl()
-    {
-        return Config::get('paymentgateways.paystack-basic.verify_url');
-    }
-
-    public function verify()
+    public function verify($gateway)
     {
         $curl = curl_init();
         $reference = isset($_GET['reference']) ? $_GET['reference'] : '';
@@ -73,11 +64,11 @@ class PaystackRepository implements PaymentInterface
         }
 
         curl_setopt_array($curl, array(
-        CURLOPT_URL => $this->getVerifyUrl() . rawurlencode($reference),
+        CURLOPT_URL => $this->getVerifyUrl("paystack-basic") . rawurlencode($reference),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_HTTPHEADER => [
-            "Authorization: Bearer " . env('PAYSTACK_SECRET_KEY'),
+            "Authorization: Bearer " . $this->getSecretKey($gateway),
             "Cache-Control: no-cache",
             "Content-Type: application/json"
         ],

@@ -7,7 +7,7 @@
             @if(session('msg'))
                 {{ session('msg') }}
             @else
-                Payment Successful. Thanks!=
+                Payment Successful. Thanks!
             @endif
         </h2>
         <a href="/" class="btn flash-button text-white">Back</a>

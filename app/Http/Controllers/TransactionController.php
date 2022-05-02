@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 
+
 class TransactionController extends Controller
 {
     /**
@@ -14,7 +15,10 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        //
+        $transactions = Transaction::whereId(auth()->user()->id)->paginate(5);
+
+        return view('dashboard', compact('transactions'));
+        
     }
 
     /**

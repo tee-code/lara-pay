@@ -13,6 +13,7 @@ class PaymentProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(PaymentInterface::class, PaystackRepository::class);
+
         $this->app->bind(PaymentInterface::class, FlutterwaveRepository::class);
 
     }
@@ -21,4 +22,5 @@ class PaymentProvider extends ServiceProvider
     {
 
     }
+    
 }

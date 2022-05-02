@@ -6,8 +6,14 @@ use App\Http\Requests\PaymentRequest;
 
 use Illuminate\Support\Facades\Config;
 
+use App\Models\Transaction;
+
+use App\Http\Traits\PaymentTrait;
+
 class PaymentController extends Controller
 {
+
+    use PaymentTrait;
 
     public function __construct()
     {
@@ -33,11 +39,11 @@ class PaymentController extends Controller
     public function redirectToGateway(PaymentRequest $request)
     {
         $request = $request->validated();
+        $gateway = $request['gateway'];
 
         $request['email'] = auth()->user()->email;
 
-
-        $paymentRepository = $this->getPaymentRepository($request['gateway']);
+        $paymentRepository = $this->getPaymentRepository($gateway);
 
         return $paymentRepository->redirect($request);
 
@@ -48,9 +54,16 @@ class PaymentController extends Controller
         
         $paymentRepository = $this->getPaymentRepository($gateway);
 
-        $response = $paymentRepository->verify();
+        $response = $paymentRepository->verify($gateway);
 
         if($response['status']){
+
+            Transaction::create([
+                "gateway" => $gateway,
+                "user_id" =>auth()->user()->id,
+                "reference" => $response['ref'],
+                "amount" => $response['data']->amount
+            ]);
 
             return redirect()->route('success', $response['ref'])->with("msg", $response['message']);
             
@@ -82,13 +95,4 @@ class PaymentController extends Controller
         return view('error', compact("ref"));
     }
 
-    public function getPaymentGateways()
-    {
-        return Config::get('paymentgateways');
-    }
-
-    public function getPaymentGatewayByCode($code)
-    {
-        return $this->getPaymentGateways()[$code];
-    }
 }

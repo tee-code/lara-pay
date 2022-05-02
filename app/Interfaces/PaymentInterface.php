@@ -6,8 +6,7 @@ interface PaymentInterface
 {
 
     public function redirect($fields);
-    public function getRedirectUrl();
-    public function getVerifyUrl();
-    public function verify();
+    
+    public function verify($gateway);
     
 }
