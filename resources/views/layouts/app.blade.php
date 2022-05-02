@@ -20,10 +20,10 @@
             }
         </style>
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
+        <link rel="stylesheet" href="/css/app.css">
 
         <!-- Scripts -->
-        <script src="{{ asset('js/app.js') }}" defer></script>
+        <script src="/js/app.js" defer></script>
     </head>
     <body class="antialiased">
         <div class="flex flex-col gradient-bg bg-cover bg-center slant w-full h-screen">
