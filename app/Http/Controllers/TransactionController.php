@@ -5,9 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 
+use App\Repositories\TransactionRepository;
+
 
 class TransactionController extends Controller
 {
+
+    public function __construct(TransactionRepository $transactionRepository)
+    {
+        $this->transactionRepository = $transactionRepository;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,10 +22,10 @@ class TransactionController extends Controller
      */
     public function index()
     {
-        $transactions = Transaction::whereId(auth()->user()->id)->paginate(5);
+        $transactions = $this->transactionRepository->getById(auth()->user()->id);
 
         return view('dashboard', compact('transactions'));
-        
+
     }
 
     /**

@@ -29,10 +29,11 @@
         <div class="flex flex-col gradient-bg bg-cover bg-center slant w-full h-screen">
             <div class="flex justify-between">
                 <a href="/" class="btn flash-button shadow-md text-white w-18 h-12">LaraPay</a>
+                
                 @if (Route::has('login'))
                     <div class="hidden fixed top-0 right-0 px-6 py-4 sm:block text-white">
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="text-sm  ">Dashboard</a>
+                            @include('layouts.navigation')
                         @else
                             <a href="{{ route('login') }}" class="text-sm  ">Log in</a>
     

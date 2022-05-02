@@ -32,7 +32,7 @@ class PaystackRepository implements PaymentInterface
         curl_setopt($ch,CURLOPT_POST, true);
         curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-        "Authorization: Bearer " . $this->getSecetKey($gateway),
+        "Authorization: Bearer " . $this->getSecretKey($gateway),
         "Cache-Control: no-cache",
         ));
         

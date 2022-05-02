@@ -25,7 +25,7 @@
                     <tbody>
                     @foreach ( $transactions as $tranx )
                         
-                        <tr>
+                        <tr class="">
                             <td>{{ $tranx->user->email }} </td>
                             <td>{{ $tranx->gateway }} </td>
                             <td>{{ $tranx->reference }} </td>

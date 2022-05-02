@@ -10,14 +10,17 @@ use App\Models\Transaction;
 
 use App\Http\Traits\PaymentTrait;
 
+use App\Repositories\TransactionRepository;
+
 class PaymentController extends Controller
 {
 
     use PaymentTrait;
 
-    public function __construct()
+    public function __construct(TransactionRepository $transactionRepository)
     {
         $this->middleware("auth");
+        $this->transactionRepository = $transactionRepository;
     }
     /**
      * Display a listing of the resource.
@@ -58,7 +61,7 @@ class PaymentController extends Controller
 
         if($response['status']){
 
-            Transaction::create([
+            $this->transactionRepository->create([
                 "gateway" => $gateway,
                 "user_id" =>auth()->user()->id,
                 "reference" => $response['ref'],
@@ -75,24 +78,24 @@ class PaymentController extends Controller
     public function success($ref = null)
     {
     
-        $ref = $ref != null ? $ref : null;
+        $ref = $ref != null ? $this->transactionRepository->findRef($ref) : null;
 
         if(!$ref){
             return redirect()->route('home');
         }
 
-        return view('success', compact("ref"));
+        return view('success', compact("ref"))->with("msg", "Payment made successfully using this reference.");
 
     }
 
     public function cancel($ref = null)
     {
-        $ref = $ref != null ? $ref : null;
+        $ref = $ref != null ? $this->transactionRepository->findRef($ref) : null;
 
         if(!$ref){
             return redirect()->route('payment');
         }
-        return view('error', compact("ref"));
+        return view('error', compact("ref"))->with("msg", "Payment was not successful using this reference.");
     }
 
 }
